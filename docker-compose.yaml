@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+
+  traefik:
+    image: traefik:v2.3
+    command:
+      # - --entrypoints.web.address=:80
+      - --entrypoints.web-secure.address=:443
+      - --providers.docker=true
+      - --certificatesresolvers.le.acme.email=foo@example.com
+      - --certificatesresolvers.le.acme.storage=acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # - 80:80
+      - 443:443
+      # - 8080:8080
+    networks:
+      - gitlab-overlay
+    #TODO: Add dashboard option later on port 8080
+  
+  gitlab-master:
+    image: 'gitlab/gitlab-ce:latest'
+    hostname: 'gitlab.example.com'
+    # ports:
+    #   - 8000:80
+    volumes:
+      - ./gitlab/data:/var/opt/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/config:/etc/gitlab
+    networks:
+      - gitlab-overlay
+    labels:
+      - traefik.http.routers.gitlab-master.rule=Host('gitlab.example.com')
+      - traefik.http.routers.gitlab-master.tls=true
+      - traefik.http.routers.gitlab-master.tls.certresolver=le
+
+  # gitlab-runner:
+  #   image: gitlab/gitlab-runner:alpine
+  #   networks:
+  #     - gitlab-overlay
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 4
+    
+
+networks:
+  gitlab-overlay:
