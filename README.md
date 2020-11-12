@@ -1,8 +1,5 @@
-# gitlab-docker-sandbox
-This repo aims to create a gitlab sandbox using docker.
 
-
-# Automatic multiregion replication for ECR repositories
+# Dockerized Sandbox for Gitlab
 
 Gitlab is an interesting new CI/CD tool I am trying to work with. I am very skilled at Jenkins and one of the reasons for that is I could test a Jenkins pipeline and practice in a docker. I wish to add similar flexibility to gitlab and for this I am working on this project to create a gitlab sandbox using docker swarm.
 
