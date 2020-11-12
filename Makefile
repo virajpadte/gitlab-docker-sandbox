@@ -12,7 +12,7 @@ help: ## This help.
 
 gitlab-cleanup: ## cleanup all gitlab configurations
 	@rm -Rf gitlab/config/* || True
-	@rm -Rf gitlab/data/* || True
+	@rm -Rf gitlab/data || True && mkdir -p gitlab/data
 	@rm -Rf gitlab/logs/* || True
 
 cluster-up: gitlab-cleanup ## deploy cluster
