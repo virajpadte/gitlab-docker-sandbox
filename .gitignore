@@ -1,3 +1,10 @@
 gitlab/config/*
+!gitlab/config/.touched
 gitlab/data/*
+!gitlab/data/.touched
 gitlab/logs/*
+!gitlab/logs/.touched
+traefik/logs/*
+!traefik/logs/.touched
+traefik/certs/*
+!traefik/certs/.touched

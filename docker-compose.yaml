@@ -1,30 +1,56 @@
 version: "3.7"
+
 services:
 
   traefik:
-    image: traefik:v2.3
+    image: "traefik:v2.3"
     command:
-      # - --entrypoints.web.address=:80
-      - --entrypoints.web-secure.address=:443
-      - --providers.docker=true
-      - --certificatesresolvers.le.acme.email=foo@example.com
-      - --certificatesresolvers.le.acme.storage=acme.json
-      - --certificatesresolvers.le.acme.tlschallenge=true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      #- "--log.level=DEBUG"
+      # - "--api.insecure=true"
+      - "--providers.docker=true"
+      # - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--providers.file.directory=/config"
     ports:
-      # - 80:80
-      - 443:443
-      # - 8080:8080
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+        # config volume from this repo as readonly
+      - ./traefik/config:/config:ro
+        # adding volume containing ssl certs
+      - ./traefik/certs:/certs:ro
+        # adding volume for log files
+      - ./traefik/logs:/logs
     networks:
       - gitlab-overlay
-    #TODO: Add dashboard option later on port 8080
-  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.http-catchall.entrypoints=http"
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+
+  whoami:
+    image: "nginxdemos/hello"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.example.com`)"
+      - "traefik.http.routers.whoami.tls=true"
+      - "traefik.http.routers.whoami.entrypoints=https"
+      # - "traefik.http.services.whoami.loadbalancer.server.port=80"
+    networks:
+      - gitlab-overlay
+
+
   gitlab-master:
     image: 'gitlab/gitlab-ce:latest'
     hostname: 'gitlab.example.com'
-    # ports:
-    #   - 8000:80
+    ports:
+      - 8000:80
     volumes:
       - ./gitlab/data:/var/opt/gitlab
       - ./gitlab/logs:/var/log/gitlab
@@ -32,18 +58,15 @@ services:
     networks:
       - gitlab-overlay
     labels:
-      - traefik.http.routers.gitlab-master.rule=Host('gitlab.example.com')
-      - traefik.http.routers.gitlab-master.tls=true
-      - traefik.http.routers.gitlab-master.tls.certresolver=le
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitlab-master.rule=Host(`gitlab.example.com`)"
+      - "traefik.http.routers.gitlab-master.tls=true"
+      - "traefik.http.routers.gitlab-master.entrypoints=https"
 
   # gitlab-runner:
   #   image: gitlab/gitlab-runner:alpine
   #   networks:
   #     - gitlab-overlay
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 4
-    
 
 networks:
   gitlab-overlay:
