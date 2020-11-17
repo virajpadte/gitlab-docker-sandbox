@@ -34,16 +34,16 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
 
-  whoami:
-    image: "nginxdemos/hello"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.example.com`)"
-      - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.entrypoints=https"
-      # - "traefik.http.services.whoami.loadbalancer.server.port=80"
-    networks:
-      - gitlab-overlay
+  # whoami:
+  #   image: "nginxdemos/hello"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.whoami.rule=Host(`whoami.example.com`)"
+  #     - "traefik.http.routers.whoami.tls=true"
+  #     - "traefik.http.routers.whoami.entrypoints=https"
+  #     - "traefik.http.services.whoami.loadbalancer.server.port=80"
+  #   networks:
+  #     - gitlab-overlay
 
 
   gitlab-master:
@@ -62,6 +62,7 @@ services:
       - "traefik.http.routers.gitlab-master.rule=Host(`gitlab.example.com`)"
       - "traefik.http.routers.gitlab-master.tls=true"
       - "traefik.http.routers.gitlab-master.entrypoints=https"
+      - "traefik.http.services.gitlab-master.loadbalancer.server.port=80"
 
   # gitlab-runner:
   #   image: gitlab/gitlab-runner:alpine
