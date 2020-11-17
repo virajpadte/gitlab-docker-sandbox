@@ -11,7 +11,7 @@ help: ## This help.
 # DOCKER TASKS
 
 traefik-config: ## generate SSL certs for traefik
-	@./traefik/mkcerts.sh
+	@cd traefik && ./mkcerts.sh
 
 gitlab-cleanup: ## cleanup all gitlab configurations
 	@rm -Rf gitlab/config/* || True
