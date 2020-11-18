@@ -23,6 +23,9 @@ gitlab-cleanup: ## cleanup all gitlab configurations
 cluster-up: gitlab-cleanup traefik-config ## deploy cluster
 	@docker-compose up -d
 
+cluster-status: ## check readiness of the containers in the cluster
+	@docker inspect `docker ps --format '{{.Names}}' | grep 'gitlab-docker-sandbox'` | jq '.[] | {"ContainerName":.Name, "Status":.State.Health.Status}'
+
 cluster-down: gitlab-cleanup ## take down cluster and remove containers
 	@echo "Removing service containers and volumes"
 	@docker-compose down -v --remove-orphans
