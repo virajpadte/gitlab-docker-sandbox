@@ -11,7 +11,14 @@ services:
       # - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.http.address=:80"
       - "--entrypoints.https.address=:443"
+      - "--ping.entryPoint=http"
       - "--providers.file.directory=/config"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost/ping"]
+      interval: 30s
+      timeout: 5ss
+      retries: 3
+      start_period: 10s
     ports:
       - "80:80"
       - "443:443"
@@ -42,8 +49,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 2m
-    ports:
-      - 8000:80
     volumes:
       - ./gitlab/data:/var/opt/gitlab
       - ./gitlab/logs:/var/log/gitlab
