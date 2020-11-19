@@ -49,10 +49,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 2m
-    volumes:
-      - ./gitlab/data:/var/opt/gitlab
-      - ./gitlab/logs:/var/log/gitlab
-      - ./gitlab/config:/etc/gitlab
     networks:
       - gitlab-overlay
     labels:
