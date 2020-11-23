@@ -19,20 +19,18 @@ services:
       timeout: 5ss
       retries: 3
       start_period: 10s
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" #TODO: check if this needs
         # config volume from this repo as readonly
       - ./traefik/config:/config:ro
         # adding volume containing ssl certs
       - ./traefik/certs:/certs:ro
-        # adding volume for log files
-      - ./traefik/logs:/logs
     networks:
       - gitlab-overlay
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.http-catchall.entrypoints=http"
@@ -49,8 +47,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 2m
+    volumes:
+      - ./gitlab/master/config:/etc/gitlab
     networks:
-      - gitlab-overlay
+      gitlab-overlay:
+        aliases:
+          - 'gitlab.example.com'
     ports:
       - "22:22"
     labels:
@@ -60,10 +62,13 @@ services:
       - "traefik.http.routers.gitlab-master.entrypoints=https"
       - "traefik.http.services.gitlab-master.loadbalancer.server.port=80"
 
-  # gitlab-runner:
-  #   image: gitlab/gitlab-runner:alpine
-  #   networks:
-  #     - gitlab-overlay
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" #TODO: check if this needs
+      - ./gitlab/runner/config:/etc/gitlab
+    networks:
+      - gitlab-overlay
 
 networks:
   gitlab-overlay:

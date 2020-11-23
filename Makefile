@@ -14,11 +14,10 @@ traefik-config: ## generate SSL certs for traefik
 	@cd traefik && ./mkcerts.sh
 
 gitlab-cleanup: ## cleanup all gitlab configurations
-	@rm -Rf gitlab/config/* || True
-	@rm -Rf gitlab/data || True && mkdir -p gitlab/data
-	@rm -Rf gitlab/logs/* || True
+	@rm -Rf gitlab/master/config/* || True
+	@rm -Rf gitlab/runner/config/* || True
+	@rm -Rf traefik/config/* || True
 	@rm -Rf traefik/certs/* || True
-	@rm -Rf traefik/logs/* || True
 
 cluster-up: gitlab-cleanup traefik-config ## deploy cluster
 	@docker-compose up -d

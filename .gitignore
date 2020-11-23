@@ -1,10 +1,8 @@
-gitlab/config/*
-!gitlab/config/.touched
-gitlab/data/*
-!gitlab/data/.touched
-gitlab/logs/*
-!gitlab/logs/.touched
-traefik/logs/*
-!traefik/logs/.touched
+gitlab/master/config/*
+gitlab/runner/config/*
+!gitlab/master/config/.touched
+!gitlab/runner/config/.touched
 traefik/certs/*
 !traefik/certs/.touched
+traefik/config/*
+!traefik/config/.touched
