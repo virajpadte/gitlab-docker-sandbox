@@ -68,6 +68,12 @@ services:
 
   gitlab-runner-host:
     image: gitlab/gitlab-runner:alpine
+    healthcheck:
+      test: ["CMD", "ps", "-a", "|", "grep", "gitlab-runner"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro" #TODO: check if this needs
       - ./gitlab/runner/config:/etc/gitlab-runner

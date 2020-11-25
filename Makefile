@@ -23,8 +23,8 @@ cluster-up: gitlab-cleanup traefik-config ## deploy cluster
 	@docker-compose up -d
 
 cluster-status: ## check readiness of the containers in the cluster
-	@docker inspect `docker ps --format '{{.Names}}' | grep 'gitlab-docker-sandbox'` | jq '.[] | {"ContainerName":.Name, "Status":.State.Health.Status}'
-	#TODO: give output zero if all are healthy and 1 if all are not healthy
+	@docker inspect `docker ps --format '{{.Names}}' | grep 'gitlab-docker-sandbox'` | jq -r '.[] | {"ServiceName":.Config.Labels."com.docker.compose.service", "Status":.State.Health.Status}'
+#TODO: give output zero if all are healthy and 1 if all are not healthy
 
 cluster-register-runners: ## register all the runners in the cluster as shared runner to the master
 # TODO 1: Execute status and if master and runner status is both health only then attempt to register.
