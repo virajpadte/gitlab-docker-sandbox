@@ -66,7 +66,7 @@ services:
       - "traefik.http.routers.gitlab-master.entrypoints=https"
       - "traefik.http.services.gitlab-master.loadbalancer.server.port=8000"
 
-  gitlab-runner:
+  gitlab-runner-host:
     image: gitlab/gitlab-runner:alpine
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro" #TODO: check if this needs
