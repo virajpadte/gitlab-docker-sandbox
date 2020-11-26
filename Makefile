@@ -1,5 +1,17 @@
 # VARIABLES:
-SHARED_RUNNER_REGISTRATION_TOKEN := "QwERTy1234"
+
+# ADMIN USER:
+ADMIN_ACCESS_TOKEN := SampleAccessToken
+ADMIN_USER_PASSWORD := Test_123@
+
+
+# SANDBOX USER:
+SANDBOX_USERNAME:= user1
+SANDBOX_USER_PASSWORD := Test_123@
+
+#CONFIGURATION:
+SHARED_RUNNER_REGISTRATION_TOKEN := QwERTy1234
+RANDOM_ID := $(shell bash -c 'echo $$RANDOM')
 
 # HELP
 .PHONY: help
@@ -28,11 +40,9 @@ status: ## check readiness of the containers in the cluster
 	@docker inspect `docker ps --format '{{.Names}}' | grep 'gitlab-docker-sandbox'` | jq -r '.[] \
 		| {"ServiceName":.Config.Labels."com.docker.compose.service", "Status":.State.Health.Status}' \
 		| tee /dev/tty | (! grep -q "unhealthy\|starting") \
-		|| (echo "Provisioing Pending: All the services in the cluster are still not healthy." && exit 1)
+		|| (echo "ProvisioingException: All the services in the cluster are still not healthy." && exit 1)
 
 register-runners: status## register all the runners in the cluster as shared runner to the master
-#TODO 2: Add waiting graphic till the time we retrive the RUNNER_REGISTRATION_TOKEN, fetch gateway address, registering runner etc
-#TODO 5: Add make target to parameterize Docker-compose file/overide hostname and port for gitlab-master and master root password
 	@HOST_GATEWAY_IP=$$(docker inspect `docker ps --format '{{.Names}}' \
 		| grep -E 'gitlab-docker-sandbox.*master'` \
 		| jq -r '.[].NetworkSettings.Networks | .[].Gateway'); \
@@ -40,12 +50,26 @@ register-runners: status## register all the runners in the cluster as shared run
 		docker-compose exec -T gitlab-runner-host \
 			gitlab-runner register \
 			--non-interactive \
-			--registration-token $(SHARED_RUNNER_REGISTRATION_TOKEN) \
+			--registration-token "$(SHARED_RUNNER_REGISTRATION_TOKEN)" \
 			--description alpine \
 			--url "http://gitlab.example.com:8000" \
 			--clone-url "http://$$HOST_GATEWAY_IP:8000" \
 			--executor docker \
 			--docker-image alpine:stable
+
+create-sandbox-user: status ## create a non admin user for use with the sandbox
+	@echo "Creating admin api token"
+	@docker-compose exec -T gitlab-master \
+		gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :sudo], name: 'admin-token'); token.set_token('RandomAccessToken-$(RANDOM_ID)'); token.save!"; \
+	USER_CREATION_STATUS=$$(curl -ks -o /dev/null -w "%{http_code}" -X POST \
+		--header "PRIVATE-TOKEN: RandomAccessToken-$(RANDOM_ID)" \
+		-d "email=$(SANDBOX_USERNAME)@example.com" \
+		-d "password=$(SANDBOX_USER_PASSWORD)" \
+		-d "username=$(SANDBOX_USERNAME)" \
+		-d "name=$(SANDBOX_USERNAME)" \
+		-d "skip_confirmation=true" \
+		"https://gitlab.example.com/api/v4/users"); \
+	if [ $$USER_CREATION_STATUS -eq 409 ]; then echo "AdminException: User already exists"; else echo "User Created!"; fi
 
 clean-runners: ## Unregister all runners from gitlab-master
 	@docker-compose exec -T gitlab-runner-host \
