@@ -40,7 +40,9 @@ status: ## check readiness of the containers in the cluster
 		| tee /dev/tty | (! grep -q "unhealthy\|starting") \
 		|| (echo "ProvisioingException: All the services in the cluster are still not healthy." && exit 1)
 
-register-runners: status## register all the runners in the cluster as shared runner to the master
+register-runners: status ## register all the runners in the cluster as shared runner to the master
+	@echo "All services are healthy."
+	@echo "Now attempting to register a new runner....."
 	@HOST_GATEWAY_IP=$$(docker inspect `docker ps --format '{{.Names}}' \
 		| grep -E 'gitlab-docker-sandbox.*master'` \
 		| jq -r '.[].NetworkSettings.Networks | .[].Gateway'); \
@@ -56,7 +58,8 @@ register-runners: status## register all the runners in the cluster as shared run
 			--docker-image alpine:stable
 
 create-sandbox-user: status ## create a non admin user for use with the sandbox
-	@echo "Creating admin api token"
+	@echo "All services are healthy."
+	@echo "Creating admin api token....."
 	@docker-compose exec -T gitlab-master \
 		gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :sudo], name: 'admin-token'); token.set_token('RandomAccessToken-$(RANDOM_ID)'); token.save!"; \
 	USER_CREATION_STATUS=$$(curl -ks -o /dev/null -w "%{http_code}" -X POST \
@@ -68,6 +71,23 @@ create-sandbox-user: status ## create a non admin user for use with the sandbox
 		-d "skip_confirmation=true" \
 		"https://gitlab.example.com/api/v4/users"); \
 	if [ $$USER_CREATION_STATUS -eq 409 ]; then echo "AdminException: User already exists"; else echo "User Created!"; fi
+
+get-concurrency: status ## get global job concurrency limit
+	@echo "All services are healthy."
+	@echo "Now checking current global job concurrency limit....."
+	@CONCURRENCY_LIMIT=$$(docker-compose exec -T gitlab-runner-host \
+		sed -n 's/^concurrent = //p' /etc/gitlab-runner/config.toml); echo "Global Job Concurrency : $$CONCURRENCY_LIMIT"
+
+set-concurrency: status ## set global job concurrency limit
+	@echo "All services are healthy."
+	@echo "Now attempting to set the global job concurrency limit....."
+ifdef concurrency
+	@docker-compose exec -T gitlab-runner-host \
+		sed -i '/^concurrent /s/=.*$/= $(concurrency)/' /etc/gitlab-runner/config.toml
+	@echo "New Global Job Concurrency : $(concurrency)
+else
+	@echo 'RunnerException: You need to pass concurrency variable for using this make target'
+endif
 
 clean-runners: ## Unregister all runners from gitlab-master
 	@docker-compose exec -T gitlab-runner-host \
