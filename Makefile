@@ -83,8 +83,8 @@ set-concurrency: status ## set global job concurrency limit
 	@echo "Now attempting to set the global job concurrency limit....."
 ifdef concurrency
 	@docker-compose exec -T gitlab-runner-host \
-		sed -i '/^concurrent /s/=.*$/= $(concurrency)/' /etc/gitlab-runner/config.toml
-	@echo "New Global Job Concurrency : $(concurrency)
+		sed -i '/^concurrent /s/=.*$$/= $(concurrency)/' /etc/gitlab-runner/config.toml
+	@echo "New Global Job Concurrency : $(concurrency)"
 else
 	@echo 'RunnerException: You need to pass concurrency variable for using this make target'
 endif
