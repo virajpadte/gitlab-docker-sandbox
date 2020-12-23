@@ -20,7 +20,7 @@ services:
       retries: 3
       start_period: 10s
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro" #TODO: check if this needs
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
         # config volume from this repo as readonly
       - ./traefik/config:/config:ro
         # adding volume containing ssl certs
@@ -77,7 +77,7 @@ services:
       retries: 3
       start_period: 10s
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro" #TODO: check if this needs
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # Depends on container use scenario
       - ./gitlab/runner/config:/etc/gitlab-runner
     networks:
       - gitlab-overlay

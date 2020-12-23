@@ -21,10 +21,12 @@ help: ## This help.
 
 # DOCKER TASKS
 
-traefik-config: ## generate SSL certs for traefik
+traefik-config:
+	## generate SSL certs for traefik
 	@cd traefik && ./mkcerts.sh
 
-gitlab-cleanup: ## cleanup all gitlab configurations
+gitlab-cleanup:
+	## cleanup all gitlab configurations
 	@rm -Rf gitlab/master/config/* || True
 	@rm -Rf gitlab/runner/config/* || True
 	@rm -Rf traefik/config/* || True
@@ -55,7 +57,7 @@ register-runners: status ## register all the runners in the cluster as shared ru
 			--url "http://gitlab.example.com:8000" \
 			--clone-url "http://$$HOST_GATEWAY_IP:8000" \
 			--executor docker \
-			--docker-image alpine:stable
+			--docker-image alpine:latest
 
 create-sandbox-user: status ## create a non admin user for use with the sandbox
 	@echo "All services are healthy."
